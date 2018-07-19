@@ -2,11 +2,11 @@
 ```npm
 npm install
 ```
-# Development [laravel-mix](https://github.com/JeffreyWay/laravel-mix)
+# Development [laravel-mix](https://github.com/JeffreyWay/laravel-mix){:target="_blank"}
 ```npm
 npm run watch
 ```
-# Production (laravel-mix) [laravel-mix](https://github.com/JeffreyWay/laravel-mix)
+# Production (laravel-mix) [laravel-mix](https://github.com/JeffreyWay/laravel-mix){:target="_blank"}
 ```npm
 npm run prod
 ```
