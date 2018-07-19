@@ -1,3 +1,15 @@
+# Installation
+```npm
+npm install
+```
+# Development [laravel-mix](https://github.com/JeffreyWay/laravel-mix)
+```npm
+npm run watch
+```
+# Production (laravel-mix) [laravel-mix](https://github.com/JeffreyWay/laravel-mix)
+```npm
+npm run prod
+```
 # Usage
 ...
 ```html
