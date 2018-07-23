@@ -40,6 +40,17 @@ class CallUsWidget {
         this.siteName = siteName
         CallUsWidget.counts++
         this.count = CallUsWidget.counts
+
+        /*
+        * put it here, because if put in bootstrap.js some times typeof jQuery().modal === 'undefined'
+        * */
+        /*
+        * https://stackoverflow.com/a/14768682
+        * */
+        if (typeof $().emulateTransitionEnd !== 'function' && typeof $().modal !== 'function') {
+            require('bootstrap-sass/assets/javascripts/bootstrap/transition')
+            require('bootstrap-sass/assets/javascripts/bootstrap/modal')
+        }
     }
 
     init() {

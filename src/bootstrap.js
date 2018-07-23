@@ -2,11 +2,7 @@ try {
     if (typeof jQuery === 'undefined') {
         window.$ = window.jQuery = require('jquery/dist/jquery.slim')
         /*
-        * https://stackoverflow.com/a/14768682
+        * @see CallUsWidget.js@init
         * */
-        if (typeof $().emulateTransitionEnd !== 'function' && typeof $().modal !== 'function') {
-            require('bootstrap-sass/assets/javascripts/bootstrap/transition')
-            require('bootstrap-sass/assets/javascripts/bootstrap/modal')
-        }
     }
 } catch (e) {}
