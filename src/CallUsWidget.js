@@ -24,6 +24,7 @@ class CallUsWidget {
             seconds = 25,
             successText = "Ваш запрос оператору отправлен",
             baseCallUrl = "http://bizsys.ln24.ru/sitecall/index.php",
+            siteName = window.location.hostname,
         } = options
         this.imgSrc = imgSrc
         this.popupStyles = {position, top, left, bottom, right, width, height, ...restStyles}
@@ -36,6 +37,7 @@ class CallUsWidget {
         this.seconds = seconds
         this.countdown = seconds
         this.baseCallUrl = baseCallUrl
+        this.siteName = siteName
         CallUsWidget.counts++
         this.count = CallUsWidget.counts
     }
@@ -140,19 +142,22 @@ class CallUsWidget {
 
     _sendCallRequest = () => {
         return new Promise(resolve => {
-            jQuery.ajax(this.__getCallUrl(), {
-                success : (data, textStatus, jqXHR) => {
+            fetch(this.__getCallUrl())
+                .then(response => {
+                    if (response.status === 422) throw new Error("Проверьте, пожалуйста, корректность введенного номера.") // TODO display according error
+                    return response.json()
+                })
+                .then(response => {
                     resolve()
-                },
-                error : (jqXHR, textStatus, errorThrown) => {
+                }).catch(error => {
                     resolve()
-                }
-            })
+                })
         })
     }
 
     __getCallUrl = () => {
-        return `${this.baseCallUrl}?phone=89${this.$phoneInput.val()}`
+
+        return `${this.baseCallUrl}?phone=89${this.$phoneInput.val()}&queue=505&sent-at=${Date.now()}&site_name=${this.siteName}`
     }
 
     _preloadGif() {
@@ -194,7 +199,7 @@ class CallUsWidget {
     _getPopupTemplate = () => `
         <div class="call-us-widget-popup" style="${this._getPopupStyles()}">
             <img src="${this.imgSrc}" alt="" />
-            <button type="button" class="btn btn-light btn-sm btn-block js-call-us-widget-call">${this._getCallMeText()}</button>
+            <button type="button" class="btn btn-info btn-sm btn-block js-call-us-widget-call">${this._getCallMeText()}</button>
         </div>
     `
 
@@ -221,7 +226,7 @@ class CallUsWidget {
                         </form>
                     </div>
                     <div class="modal-footer">
-                        <button form="js-call-us-widget-form-${this.count}" type="submit" class="btn btn-primary">${this.modalCallMeText}</button>
+                        <button form="js-call-us-widget-form-${this.count}" type="submit" class="btn btn-info">${this.modalCallMeText}</button>
                     </div>
                 </div>
             </div>

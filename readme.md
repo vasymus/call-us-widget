@@ -13,6 +13,10 @@ npm run prod
 # Usage
 ...
 ```html
+<link rel="stylesheet" href="css/call-us-widget.css">
+```
+...
+```html
 <div class="call-us-widget"></div>
 ```
 ...
@@ -45,4 +49,5 @@ name | type | default | description
 *seconds* | `number` | **"25"** | The number of seconds for countdown. Could be used for *callMeText* and *descriptionText* instead of `{{template}}`
 *successText* | `string` | **"Ваш запрос оператору отправлен"** | Success text shown under telephone input field.
 *baseCallUrl* | `string` | **"http://bizsys.ln24.ru/sitecall/index.php"** | Url for ajax get request to third party server -- distributor of operator call
+*siteName* | `string` | **window.location.hostname** | The get parameter in callback REST API. For statistic purpose
 *popupStyles* | `object` | **{ position : "fixed", top : "auto", left : "auto", bottom : "30px", right : "30px", width : "150px", height : "200px" }** | Style object. Applied to popup. Could use camelCase css styles, e.g. backgroundColor, or hyphen case ones, e.g. background-color. Other styles, beside shown as default, could also be applied, for e.g. **{ backgroundColor : "red", "border-bottom" : "1px solid purple" }**

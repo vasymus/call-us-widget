@@ -13,7 +13,7 @@ let path = require('path')
  |
  */
 
-let reactAppPath = `src`
+let appPath = `src`
 let distPath = 'build'
 
 mix
@@ -28,15 +28,15 @@ mix.options({
 mix.webpackConfig({
     plugins: [
         new ImageminPlugin({
-            test: `${reactAppPath}/_static/images/**`,
+            test: `${appPath}/_static/images/**`,
         })
     ],
 });
 
 
-mix.js(`${reactAppPath}/index.js`, 'js/call-us-widget.js')
-    //.sass(`${reactAppPath}/_static/styles/index.scss`, 'css/main.css') // desided to use in compiled .js
-    .copy(`${reactAppPath}/_static/images`, `${distPath}/images`)
+mix.js(`${appPath}/index.js`, 'js/call-us-widget.js')
+    .sass(`${appPath}/_static/styles/index.scss`, 'css/call-us-widget.css') // desided to use in compiled .js
+    .copy(`${appPath}/_static/images`, `${distPath}/images`)
 ;
 
 // Full API

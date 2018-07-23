@@ -6,9 +6,6 @@
 
 :root #{$body-class-space} {
     @import "~bootstrap-sass/assets/stylesheets/bootstrap/modals";
-    .modal-backdrop.in {
-        background-color: rgb(127, 229, 255);
-    }
 }
 :root #{$class-space} {
     @import "~bootstrap-sass/assets/stylesheets/bootstrap/scaffolding";

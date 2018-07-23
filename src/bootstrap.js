@@ -1,6 +1,6 @@
 try {
     if (typeof jQuery === 'undefined') {
-        window.$ = window.jQuery = require('jquery')
+        window.$ = window.jQuery = require('jquery/dist/jquery.slim')
         /*
         * https://stackoverflow.com/a/14768682
         * */
