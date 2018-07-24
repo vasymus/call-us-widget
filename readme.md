@@ -44,6 +44,7 @@ name | type | default | description
 *callMeText* | `string` | **"перезвоню за {{seconds}} с."** | Text of the "call me" button (not in the modal). Could use {{seconds}} as a template variable
 *modalCallMeText* | `string` | **"Перезвонить мне"** | Text of the "call me" button (in the modal).
 *requiredErrorText* | `string` | **"Укажите номер телефона"** | Text which displayed, if telephone field wasn't filled
+*correctNumberErrorText* | `string` | **"Некорректный номер телефона"** | Text which displayed, if telephone number isn't correct. The pattern is `/^\d{3}-\d{3}-\d{4}$/g`
 *descriptionText* | `string` | **"Здравствуйте, дождитесь звонка оператора. Если он не успеет за {{seconds}} с., приносим извинения за задержку, Вам обязательно перезвонят."** | Text of modal body. Could use {{seconds}} as a template variable
 *modalSrOnly* | `string` | **"Телефон, на который перезвонить"** | Text the displayed for Accessibility purpose
 *seconds* | `number` | **"25"** | The number of seconds for countdown. Could be used for *callMeText* and *descriptionText* instead of `{{template}}`

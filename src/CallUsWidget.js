@@ -1,4 +1,4 @@
-import {camelToHyphen} from './helpers'
+import {camelToHyphen, enforceFormat, formatToPhone} from './helpers'
 
 
 class CallUsWidget {
@@ -19,7 +19,8 @@ class CallUsWidget {
             callMeText = "перезвоню за {{seconds}} с.",
             modalCallMeText = "Перезвонить мне",
             requiredErrorText = "Укажите номер телефона",
-            descriptionText = "Здравствуйте, дождитесь звонка оператора. Если он не успеет за {{seconds}} с., приносим извинения за задержку, Вам обязательно перезвонят.",
+            correctNumberErrorText = "Некорректный номер телефона",
+            descriptionText = '<p class="text-center">Здравствуйте, дождитесь ответа оператора.</p><p class="text-center">Он Вам перезвонит за {{seconds}} сек.</p>',
             modalSrOnly = "Телефон, на который перезвонить",
             seconds = 25,
             successText = "Ваш запрос оператору отправлен",
@@ -31,11 +32,11 @@ class CallUsWidget {
         this._callMeText = callMeText
         this.modalCallMeText = modalCallMeText
         this.requiredErrorText = requiredErrorText
+        this.correctNumberErrorText = correctNumberErrorText
         this.successText = successText
         this._descriptionText = descriptionText
         this.modalSrOnly = modalSrOnly
         this.seconds = seconds
-        this.countdown = seconds
         this.baseCallUrl = baseCallUrl
         this.siteName = siteName
         CallUsWidget.counts++
@@ -70,7 +71,6 @@ class CallUsWidget {
 
     _reset() {
         this._stopViewCountdown()
-        this._resetCountdown()
         this.$modal.remove()
         this.$element.append(this._getModalTemplate())
         this._findNodes()
@@ -84,6 +84,8 @@ class CallUsWidget {
         this.$phoneInputFormGroup = this.$form.find('.js-call-us-widget-telephone-form-group')
         this.$phoneInput = this.$phoneInputFormGroup.find('.js-call-us-widget-telephone')
         this.$countdown = this.$modal.find('.js-call-us-widget-countdown')
+        this.$seconds = this.$countdown.find('.js-call-us-widget-sec')
+        this.$ms = this.$countdown.find('.js-call-us-widget-ms')
         this.$img = this.$element.find('.call-us-widget-popup img')
         this.$button = this.$element.find('.call-us-widget-popup .btn')
         this.$body = $('body')
@@ -91,27 +93,27 @@ class CallUsWidget {
 
     _addFormListeners() {
         this.$form.on('submit', this.__submitHandler)
+        this.$phoneInput.on('keydown', this.__keydown)
+        this.$phoneInput.on('keyup', this.__keyup)
     }
 
     _startViewCountdown() {
+        this.startTimestamp = Date.now()
         this.interval = setInterval(() => {
-            if (this.countdown > 0) {
-                this.countdown--
-                this.$countdown.html(this._getRenderCountdown())
+            let subtractedTimePassed = this.__getMS() - (Date.now() - this.startTimestamp)
+            if (subtractedTimePassed > 0) {
+                this.$seconds.html(this._getCountdownSecondsFormated(subtractedTimePassed))
+                this.$ms.html(this._getCountdownMsFormated(subtractedTimePassed))
             } else {
-                this.countdown = 0
-                this.$countdown.html(this._getRenderCountdown())
+                this.$seconds.html(this._getCountdownSecondsFormated(0))
+                this.$ms.html(this._getCountdownMsFormated(0))
                 this._stopViewCountdown()
             }
-        }, 1000)
+        }, 100)
     }
 
     _stopViewCountdown() {
         clearInterval(this.interval)
-    }
-
-    _resetCountdown() {
-        this.countdown = this.seconds
     }
 
     _addCallMeListeners() {
@@ -130,13 +132,16 @@ class CallUsWidget {
         this.$body.removeClass('call-us-widget-body-space')
         this._reset()
     }
+    __keydown = enforceFormat
+    __keyup = formatToPhone
     __submitHandler = (event) => {
         event.preventDefault()
-        if (!this.$phoneInput.val()) {
+        let value = this.$phoneInput.val()
+        if (!value || !this._checkNumber(value)) {
             this.$phoneInputFormGroup.addClass('has-error')
             this.$phoneInputFormGroup.removeClass('has-success')
             this.$phoneInputInfo && this.$phoneInputInfo.remove()
-            this.$phoneInputFormGroup.append(`<p class="help-block">${this.requiredErrorText}</p>`)
+            this.$phoneInputFormGroup.append(`<p class="help-block">${!this.$phoneInput.val() ? this.requiredErrorText : this.correctNumberErrorText}</p>`)
             this.$phoneInputInfo = this.$phoneInputFormGroup.children().last()
         } else {
             this._sendCallRequest().finally(() => {
@@ -167,7 +172,6 @@ class CallUsWidget {
     }
 
     __getCallUrl = () => {
-
         return `${this.baseCallUrl}?phone=89${this.$phoneInput.val()}&queue=505&sent-at=${Date.now()}&site_name=${this.siteName}`
     }
 
@@ -186,8 +190,14 @@ class CallUsWidget {
         return styles
     }
 
-    _getRenderCountdown() {
-        return `00:${this.countdown >= 10 ? this.countdown : `0${this.countdown}`}`
+    _getCountdownSecondsFormated(ms) {
+        let res = (ms / 1000).toFixed(0)
+        return res.length === 1 ? `0${res}` : res
+    }
+
+    _getCountdownMsFormated(ms) {
+        let res = (ms / 1000).toFixed(2).split('.')[1]
+        return res.length === 1 ? `0${res}` : res
     }
 
     _getTextFromTemplate(template = "") {
@@ -222,14 +232,14 @@ class CallUsWidget {
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
-                        <h3 class="modal-title text-center js-call-us-widget-countdown" id="js-call-us-widget-modal-label-${this.count}">${this._getRenderCountdown()}</h3>
+                        <h3 class="modal-title text-center js-call-us-widget-countdown" id="js-call-us-widget-modal-label-${this.count}">00:<span class="js-call-us-widget-sec">${this._getCountdownSecondsFormated(this.__getMS())}</span>.<span class="js-call-us-widget-ms">${this._getCountdownMsFormated(this.__getMS())}</span></h3>
                     </div>
                     <div class="modal-body">
-                        <p class="text-justify">${this._getDescription()}</p>
+                        ${this._getDescription()}
                         <form id="js-call-us-widget-form-${this.count}" class="pt-1">
-                            <div class="form-group js-call-us-widget-telephone-form-group">
+                            <div class="form-group js-call-us-widget-telephone-form-group call-us-widget-telephone-form-group">
                                 <label class="sr-only" for="callback-phone-${this.count}">${this.modalSrOnly}</label>
-                                <div class="input-group">
+                                <div class="input-group call-us-widget-input-group-center">
                                     <div class="input-group-addon">+ 7</div>
                                     <input name="telephone" type="tel" class="form-control js-call-us-widget-telephone" id="callback-phone-${this.count}" placeholder="">
                                 </div>
@@ -243,6 +253,12 @@ class CallUsWidget {
             </div>
         </div>
     `
+
+    __getMS(){
+        return this.seconds * 1000
+    }
+
+    _checkNumber = (value) => /^\d{3}-\d{3}-\d{4}$/g.test(value)
 
     static counts = 0
 }
