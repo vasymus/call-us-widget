@@ -12,10 +12,20 @@ class CallUsWidget {
                 left = "auto",
                 bottom = "30px",
                 right = "30px",
-                width = "150px",
-                height = "200px",
-                ...restStyles
+                width = "auto",
+                height = "auto",
+                ...restPopupStyles,
             } = {},
+            imgStyles : {
+                width : imgWidth = "auto",
+                height : imgHeight = "auto",
+                ...restImgStyles,
+            } = {},
+            buttonStyles : {
+                width : buttonWidth = "auto",
+                ...restButtonStyles,
+            } = {},
+            buttonClass = "primary",
             callMeText = "перезвоню за {{seconds}} с.",
             modalCallMeText = "Перезвонить мне",
             requiredErrorText = "Укажите номер телефона",
@@ -28,7 +38,9 @@ class CallUsWidget {
             siteName = window.location.hostname,
         } = options
         this.imgSrc = imgSrc
-        this.popupStyles = {position, top, left, bottom, right, width, height, ...restStyles}
+        this.popupStyles = {position, top, left, bottom, right, width, height, ...restPopupStyles}
+        this.imgStyles = {width : imgWidth, height : imgHeight, ...restImgStyles}
+        this.buttonStyles = {width : buttonWidth, ...restButtonStyles}
         this._callMeText = callMeText
         this.modalCallMeText = modalCallMeText
         this.requiredErrorText = requiredErrorText
@@ -39,6 +51,7 @@ class CallUsWidget {
         this.seconds = seconds
         this.baseCallUrl = baseCallUrl
         this.siteName = siteName
+        this.buttonClass = buttonClass
         CallUsWidget.counts++
         this.count = CallUsWidget.counts
 
@@ -182,10 +195,26 @@ class CallUsWidget {
         })
     }
 
-    _getPopupStyles() {
+    _getStyles = (elementName) => {
+        if (!['popup', 'img', 'button'].includes(elementName)) console.warn('wrong element name for styles applying')
         let styles = ""
-        for (let key in this.popupStyles) {
-            styles += `${camelToHyphen(key)}:${this.popupStyles[key]};`
+        let populator
+        switch (elementName) {
+            case 'popup' : {
+                populator = this.popupStyles
+                break
+            }
+            case 'img' : {
+                populator = this.imgStyles
+                break
+            }
+            case 'button' : {
+                populator = this.buttonStyles
+                break
+            }
+        }
+        for (let key in populator) {
+            styles += `${camelToHyphen(key)}:${populator[key]};`
         }
         return styles
     }
@@ -218,9 +247,9 @@ class CallUsWidget {
     `
 
     _getPopupTemplate = () => `
-        <div class="call-us-widget-popup" style="${this._getPopupStyles()}">
-            <img src="${this.imgSrc}" alt="" />
-            <button type="button" class="btn btn-info btn-sm btn-block js-call-us-widget-call">${this._getCallMeText()}</button>
+        <div class="call-us-widget-popup" style="${this._getStyles('popup')}">
+            <img src="${this.imgSrc}" alt="" style="${this._getStyles('img')}" />
+            <button type="button" class="btn btn-${this.buttonClass} btn-sm btn-block center-block js-call-us-widget-call" style="${this._getStyles('button')}">${this._getCallMeText()}</button>
         </div>
     `
 
@@ -247,7 +276,7 @@ class CallUsWidget {
                         </form>
                     </div>
                     <div class="modal-footer">
-                        <button form="js-call-us-widget-form-${this.count}" type="submit" class="btn btn-info">${this.modalCallMeText}</button>
+                        <button form="js-call-us-widget-form-${this.count}" type="submit" class="btn btn-${this.buttonClass}">${this.modalCallMeText}</button>
                     </div>
                 </div>
             </div>
