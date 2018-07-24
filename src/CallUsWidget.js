@@ -58,13 +58,17 @@ class CallUsWidget {
         /*
         * put it here, because if put in bootstrap.js some times typeof jQuery().modal === 'undefined'
         * */
-        /*
-        * https://stackoverflow.com/a/14768682
-        * */
-        if (typeof $().emulateTransitionEnd !== 'function' && typeof $().modal !== 'function') {
-            require('bootstrap-sass/assets/javascripts/bootstrap/transition')
-            require('bootstrap-sass/assets/javascripts/bootstrap/modal')
+        if (typeof jQuery === 'undefined') {
+            window.$ = window.jQuery = require('jquery/dist/jquery.slim')
+            /*
+            * https://stackoverflow.com/a/14768682
+            * */
+            if (typeof jQuery().emulateTransitionEnd !== 'function' && typeof jQuery().modal !== 'function') {
+                require('bootstrap-sass/assets/javascripts/bootstrap/transition')
+                require('bootstrap-sass/assets/javascripts/bootstrap/modal')
+            }
         }
+
     }
 
     init() {
@@ -101,7 +105,7 @@ class CallUsWidget {
         this.$ms = this.$countdown.find('.js-call-us-widget-ms')
         this.$img = this.$element.find('.call-us-widget-popup img')
         this.$button = this.$element.find('.call-us-widget-popup .btn')
-        this.$body = $('body')
+        this.$body = jQuery('body')
     }
 
     _addFormListeners() {
