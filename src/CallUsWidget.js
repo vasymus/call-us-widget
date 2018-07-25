@@ -3,6 +3,24 @@ import {camelToHyphen, enforceFormat, formatToPhone} from './helpers'
 
 class CallUsWidget {
     constructor(selector, options = {}) {
+        /*
+        * put it here, because if put in bootstrap.js some times typeof jQuery().modal === 'undefined'
+        * */
+        console.log('---', typeof jQuery === 'undefined')
+        if (typeof jQuery === 'undefined') {
+            window.$ = window.jQuery = require('jquery/dist/jquery.slim')
+        }
+
+        /*
+        * https://stackoverflow.com/a/14768682
+        * */
+        console.log('--- ', typeof jQuery().emulateTransitionEnd !== 'function')
+        console.log('--- ', typeof jQuery().modal !== 'function')
+        if (typeof jQuery().emulateTransitionEnd !== 'function' && typeof jQuery().modal !== 'function') {
+            require('bootstrap-sass/assets/javascripts/bootstrap/transition')
+            require('bootstrap-sass/assets/javascripts/bootstrap/modal')
+        }
+
         this.$element = jQuery(selector)
         let {
             imgSrc = "",
@@ -54,21 +72,6 @@ class CallUsWidget {
         this.buttonClass = buttonClass
         CallUsWidget.counts++
         this.count = CallUsWidget.counts
-
-        /*
-        * put it here, because if put in bootstrap.js some times typeof jQuery().modal === 'undefined'
-        * */
-        if (typeof jQuery === 'undefined') {
-            window.$ = window.jQuery = require('jquery/dist/jquery.slim')
-            /*
-            * https://stackoverflow.com/a/14768682
-            * */
-            if (typeof jQuery().emulateTransitionEnd !== 'function' && typeof jQuery().modal !== 'function') {
-                require('bootstrap-sass/assets/javascripts/bootstrap/transition')
-                require('bootstrap-sass/assets/javascripts/bootstrap/modal')
-            }
-        }
-
     }
 
     init() {
@@ -189,7 +192,12 @@ class CallUsWidget {
     }
 
     __getCallUrl = () => {
-        return `${this.baseCallUrl}?phone=89${this.$phoneInput.val()}&queue=505&sent-at=${Date.now()}&site_name=${this.siteName}`
+        return `${this.baseCallUrl}?phone=8${this.__getFinalPhoneInput()}&queue=505&sent-at=${Date.now()}&site_name=${this.siteName}`
+    }
+
+    __getFinalPhoneInput = () => {
+        let excludDash = ("" + this.$phoneInput.val()).split("-")
+        return excludDash.join("")
     }
 
     _preloadGif() {
