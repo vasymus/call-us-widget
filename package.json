@@ -23,6 +23,7 @@
     "sass-loader": "^7.0.3"
   },
   "dependencies": {
+    "animate.css": "^3.6.1",
     "bootstrap-sass": "^3.3.7",
     "jquery": "^3.3.1"
   }

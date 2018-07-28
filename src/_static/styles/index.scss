@@ -16,5 +16,8 @@
     @import "~bootstrap-sass/assets/stylesheets/bootstrap/close";
     @import "~bootstrap-sass/assets/stylesheets/bootstrap/modals";
     @import "~bootstrap-sass/assets/stylesheets/bootstrap/utilities";
+    @import "~animate.css/source/_base.css";
+    @import "~animate.css/source/fading_entrances/fadeInRight.css";
+    @import "~animate.css/source/fading_exits/fadeOutRight.css";
     @import "call-us-widget";
 }

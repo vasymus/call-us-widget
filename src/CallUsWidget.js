@@ -43,6 +43,9 @@ class CallUsWidget {
                 width : buttonWidth = "auto",
                 ...restButtonStyles,
             } = {},
+            popupCloseStyles : {
+                ...restPopupCloseStyles,
+            },
             buttonClass = "primary",
             callMeText = "перезвоню за {{seconds}} с.",
             modalCallMeText = "Перезвонить мне",
@@ -54,11 +57,13 @@ class CallUsWidget {
             successText = "Ваш запрос оператору отправлен",
             baseCallUrl = "http://bizsys.ln24.ru/sitecall/index.php",
             siteName = window.location.hostname,
+            temporaryHidePopupTime = 180000 // 3 minutes
         } = options
         this.imgSrc = imgSrc
         this.popupStyles = {position, top, left, bottom, right, width, height, ...restPopupStyles}
         this.imgStyles = {width : imgWidth, height : imgHeight, ...restImgStyles}
         this.buttonStyles = {width : buttonWidth, ...restButtonStyles}
+        this.popupCloseStyles = {...restPopupCloseStyles}
         this._callMeText = callMeText
         this.modalCallMeText = modalCallMeText
         this.requiredErrorText = requiredErrorText
@@ -70,6 +75,7 @@ class CallUsWidget {
         this.baseCallUrl = baseCallUrl
         this.siteName = siteName
         this.buttonClass = buttonClass
+        this.temporaryHidePopupTime = temporaryHidePopupTime
         CallUsWidget.counts++
         this.count = CallUsWidget.counts
     }
@@ -106,8 +112,10 @@ class CallUsWidget {
         this.$countdown = this.$modal.find('.js-call-us-widget-countdown')
         this.$seconds = this.$countdown.find('.js-call-us-widget-sec')
         this.$ms = this.$countdown.find('.js-call-us-widget-ms')
-        this.$img = this.$element.find('.call-us-widget-popup img')
-        this.$button = this.$element.find('.call-us-widget-popup .btn')
+        this.$popup = this.$element.find('.call-us-widget-popup')
+        this.$popupClose = this.$popup.find('.js-call-us-widget-popup-close')
+        this.$img = this.$popup.find('img')
+        this.$button = this.$popup.find('.btn')
         this.$body = jQuery('body')
     }
 
@@ -136,7 +144,15 @@ class CallUsWidget {
         clearInterval(this.interval)
     }
 
+    _temporaryHidePopup() {
+        this.$popup.removeClass(CallUsWidget.animatedEntranceClass).addClass(CallUsWidget.animatedLeaveClass)
+        setTimeout(() => {
+            this.$popup.removeClass(CallUsWidget.animatedLeaveClass).addClass(CallUsWidget.animatedEntranceClass)
+        }, this.temporaryHidePopupTime)
+    }
+
     _addCallMeListeners() {
+        this.$popupClose.on('click', this.__clickPopupClose)
         this.$img.on('click', this.__clickToShowModal)
         this.$button.on('click', this.__clickToShowModal)
     }
@@ -146,6 +162,9 @@ class CallUsWidget {
         this.$modal.on('hidden.bs.modal', this.__hiddenBsModal)
     }
 
+    __clickPopupClose = () => {
+        this._temporaryHidePopup()
+    }
     __clickToShowModal = () => this.$modal.modal('show')
     __showBsModal = () => this.$body.addClass('call-us-widget-body-space')
     __hiddenBsModal = () => {
@@ -208,7 +227,7 @@ class CallUsWidget {
     }
 
     _getStyles = (elementName) => {
-        if (!['popup', 'img', 'button'].includes(elementName)) console.warn('wrong element name for styles applying')
+        if (!['popup', 'img', 'button', 'popup-close'].includes(elementName)) console.warn('wrong element name for styles applying')
         let styles = ""
         let populator
         switch (elementName) {
@@ -222,6 +241,10 @@ class CallUsWidget {
             }
             case 'button' : {
                 populator = this.buttonStyles
+                break
+            }
+            case 'popup-close' : {
+                populator = this.popupCloseStyles
                 break
             }
         }
@@ -259,7 +282,10 @@ class CallUsWidget {
     `
 
     _getPopupTemplate = () => `
-        <div class="call-us-widget-popup" style="${this._getStyles('popup')}">
+        <div class="call-us-widget-popup animated ${CallUsWidget.animatedEntranceClass}" style="${this._getStyles('popup')}">
+            <button type="button" class="close call-us-widget-popup-close js-call-us-widget-popup-close" aria-label="Close" style="${this._getStyles('popup-close')}">
+                <span aria-hidden="true">×</span>
+            </button>
             <img src="${this.imgSrc}" alt="" style="${this._getStyles('img')}" />
             <button type="button" class="btn btn-${this.buttonClass} btn-sm btn-block center-block js-call-us-widget-call" style="${this._getStyles('button')}">${this._getCallMeText()}</button>
         </div>
@@ -302,6 +328,8 @@ class CallUsWidget {
     _checkNumber = (value) => /^\d{3}-\d{3}-\d{4}$/g.test(value)
 
     static counts = 0
+    static animatedEntranceClass = "fadeInRight"
+    static animatedLeaveClass = "fadeOutRight"
 }
 
 export default CallUsWidget
