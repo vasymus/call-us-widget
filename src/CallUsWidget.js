@@ -1,4 +1,6 @@
-import {camelToHyphen, enforceFormat, formatToPhone} from './helpers'
+import {camelToHyphen, enforceFormat, formatToPhone, isPromise} from './helpers'
+import LocalData from './LocalData'
+import LocationFetcher from './LocationFetcher'
 
 
 class CallUsWidget {
@@ -6,7 +8,6 @@ class CallUsWidget {
         /*
         * put it here, because if put in bootstrap.js some times typeof jQuery().modal === 'undefined'
         * */
-        console.log('---', typeof jQuery === 'undefined')
         if (typeof jQuery === 'undefined') {
             window.$ = window.jQuery = require('jquery/dist/jquery.slim')
         }
@@ -14,8 +15,6 @@ class CallUsWidget {
         /*
         * https://stackoverflow.com/a/14768682
         * */
-        console.log('--- ', typeof jQuery().emulateTransitionEnd !== 'function')
-        console.log('--- ', typeof jQuery().modal !== 'function')
         if (typeof jQuery().emulateTransitionEnd !== 'function' && typeof jQuery().modal !== 'function') {
             require('bootstrap-sass/assets/javascripts/bootstrap/transition')
             require('bootstrap-sass/assets/javascripts/bootstrap/modal')
@@ -76,23 +75,33 @@ class CallUsWidget {
         this.siteName = siteName
         this.buttonClass = buttonClass
         this.temporaryHidePopupTime = temporaryHidePopupTime
-        CallUsWidget.counts++
         this.count = CallUsWidget.counts
+        this.localData = new LocalData()
+        this.locationFetcher = new LocationFetcher()
+        CallUsWidget.counts++
     }
 
     init() {
-        this._preloadGif().finally(() => {
-            this._render()
-            this._findNodes()
-            this._addCallMeListeners()
-            this._addModalListeners()
-            this._addFormListeners()
-        })
+        this.localData.init()
+        this.locationFetcher.init()
+        this._preloadGif()
+            .finally(() => {
+                /**
+                 * do not need to wait for fetching because cloud popup appear
+                 * */
+                return this.locationFetcher.resolveLocality()
+            })
+            .finally(() => {
+                this._render()
+                this._findNodes()
+                this._addCallMeListeners()
+                this._addModalListeners()
+                this._addFormListeners()
+            })
     }
 
     _render() {
         this.$element.html(this._getTemplate())
-        return this
     }
 
     _reset() {
@@ -114,6 +123,8 @@ class CallUsWidget {
         this.$ms = this.$countdown.find('.js-call-us-widget-ms')
         this.$popup = this.$element.find('.call-us-widget-popup')
         this.$popupClose = this.$popup.find('.js-call-us-widget-popup-close')
+        this.$popupCloud = this.$popup.find('.js-call-us-widget-popup-cloud')
+        this.$location = this.$popup.find('.js-call-us-widget-location')
         this.$img = this.$popup.find('img')
         this.$button = this.$popup.find('.btn')
         this.$body = jQuery('body')
@@ -276,6 +287,14 @@ class CallUsWidget {
         return this._getTextFromTemplate(this._callMeText)
     }
 
+    // TODO
+    _getDiscount() {
+        return 3
+    }
+    _formatDiscount(discount) {
+        return `${discount}.0`
+    }
+
     _getTemplate = () => `
         ${this._getPopupTemplate()}
         ${this._getModalTemplate()}
@@ -286,8 +305,20 @@ class CallUsWidget {
             <button type="button" class="close call-us-widget-popup-close js-call-us-widget-popup-close" aria-label="Close" style="${this._getStyles('popup-close')}">
                 <span aria-hidden="true">×</span>
             </button>
+            ${this._getPopupCloudTemplate()}
             <img src="${this.imgSrc}" alt="" style="${this._getStyles('img')}" />
             <button type="button" class="btn btn-${this.buttonClass} btn-sm btn-block center-block js-call-us-widget-call" style="${this._getStyles('button')}">${this._getCallMeText()}</button>
+        </div>
+    `
+
+    _getPopupCloudTemplate = () => `
+        <div class="call-us-widget-popup-cloud js-call-us-widget-popup-cloud well well-sm m-0">
+            <p class="text-center"><b>00:${this._getCountdownSecondsFormated(this.__getMS())}.${this._getCountdownMsFormated(this.__getMS())}</b></p>
+            <p class="text-justify">Здравствуйте, уважа&shy;е&shy;мый по&shy;се&shy;ти&shy;тель<span class="js-call-us-widget-location"></span>.</p>
+            <p class="text-justify">Ваша персональная скидка ${this._formatDiscount(this._getDiscount())}%.</p>
+            <p>+7 ___ - ___ - ____</p>
+            <p class="text-center m-0"><button type="button" class="btn btn-${this.buttonClass} btn-sm">${this._getCallMeText()}</button></p>
+            <div class="call-us-widget-no-click-layer"></div>
         </div>
     `
 

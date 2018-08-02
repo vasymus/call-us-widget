@@ -43,3 +43,8 @@ export const formatToPhone = (event) => {
         target.value = `${zip}`
     }
 }
+
+/*
+* https://stackoverflow.com/a/27746324
+* */
+export const isPromise = obj => !!obj.then
