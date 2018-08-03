@@ -92,7 +92,9 @@ class CallUsWidget {
                 /**
                  * do not need to wait for fetching because cloud popup appear not at once
                  * */
-                return this.locationFetcher.resolveLocality()
+                return new Promise(resolve => {
+                    this.locationFetcher.resolveLocality(resolve)
+                })
             })
             .finally(() => {
                 this._render()
@@ -101,6 +103,7 @@ class CallUsWidget {
                 this._addModalListeners()
                 this._addFormListeners()
                 this._initCloud()
+                this._renderLocation()
             })
     }
 
@@ -134,6 +137,11 @@ class CallUsWidget {
         this.$img = this.$popup.find('img')
         this.$button = this.$popup.find('.btn')
         this.$body = jQuery('body')
+    }
+
+    _renderLocation() {
+        let locality = this.locationFetcher.getFormatedLocality()
+        this.$location.html(locality)
     }
 
     _initCloud() {
