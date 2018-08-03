@@ -21,11 +21,11 @@ class LocationFetcher {
     }
 
     getFormatedLocality() {
-        return this.locality ? this.__getFormatedLocalityWithDeclension2() : ""
+        return this.locality ? this.__getFormatedLocalityWithDeclension() : ""
     }
 
     __setLocality() {
-        let locality = this.localData.get('locality')
+        let locality = this.localData.get(LocalData.localityKey)
         if (locality) {
             this.locality = locality
             this.___resolveCB()
@@ -41,7 +41,7 @@ class LocationFetcher {
     }
 
     __setLocalityToLocalData() {
-        this.localData.set('locality', this.locality)
+        this.localData.set(LocalData.localityKey, this.locality)
         this.localData.set('formatedLocality', this.getFormatedLocality())
     }
 
@@ -51,7 +51,7 @@ class LocationFetcher {
             .then(response => {
                 let {results} = response
                 if (!Array.isArray(results)) results = []
-                this.locality = this.__parseLocalityFromGooogleMap2(results)
+                this.locality = this.__parseLocalityFromGooogleMap(results)
                 this.__setLocalityToLocalData()
             })
             .catch(this.___errorCB)
@@ -75,7 +75,7 @@ class LocationFetcher {
             .finally(this.___resolveCB)
     }
 
-    __parseLocalityFromGooogleMap2(results) {
+    __parseLocalityFromGooogleMap(results) {
         let formattedAddresses = results.map(r => r.formatted_address).filter(r => !!r)
         if (!formattedAddresses.length) return ''
         let locality = this.__parseLocalityViaCitySearchKeys(formattedAddresses)
@@ -110,36 +110,10 @@ class LocationFetcher {
         return locality
     }
 
-    __parseLocalityFromGooogleMap(results) {
-        let allDataObj = results[0]
-        let addressComponentns = allDataObj.address_components
-        let component = addressComponentns.find(c => {
-            return c.types.indexOf('administrative_area_level_2') !== -1
-        })
-        return (component && component.short_name) || ""
-    }
-
-    __getFormatedLocalityWithDeclension2 = () => {
-        let locality = this.locality
-        if (!locality) return ''
-        return locality.indexOf('г. ') !== -1 ? `из ${locality}` : ` (${locality})`
-    }
-
-    /**
-     * https://ru.wikipedia.org/wiki/Населённые_пункты_в_России
-     * http://i.imgur.com/6B7MHe3.png
-     * */
     __getFormatedLocalityWithDeclension = () => {
         let locality = this.locality
         if (!locality) return ''
-        for (let key in LocationFetcher.declasionLocalities) {
-            let {pattern, result} = LocationFetcher.declasionLocalities[key]
-            if (locality.search(new RegExp(pattern)) !== -1) {
-                locality = locality.replace(new RegExp(pattern), result)
-                break
-            }
-        }
-        return `из ${locality}`
+        return locality.indexOf('г. ') !== -1 ? `из ${locality}` : ` (${locality})`
     }
 
     ___middleThenCB = response => {
@@ -149,7 +123,7 @@ class LocationFetcher {
     ___errorCB = error => console.warn(error)
     ___resolveCB = () => {
         for (let resolveKey in this.resolvers) {
-            this.resolvers[resolveKey] && this.resolvers[resolveKey]()
+            typeof this.resolvers[resolveKey] === 'function' && this.resolvers[resolveKey]()
         }
     }
 
@@ -158,19 +132,6 @@ class LocationFetcher {
         'Санкт-Петербург',
         'г. '
     ]
-
-    static declasionLocalities = {
-        'р-н' : {
-            id : 'р-н',
-            pattern : '^р-н ',
-            result : 'р-на ',
-        },
-        'ст-ца' : {
-            id : 'ст-ца',
-            pattern : '^ст-ца ',
-            result : 'ст-цы ',
-        }
-    }
 
     static IPSERVICE_URL = "http://api.ipstack.com/check"
     static IPSERVICE_K = "1d64a17fea3a3231cbeaa11c15ea8ccf"

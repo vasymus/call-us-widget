@@ -1,6 +1,7 @@
-import {camelToHyphen, enforceFormat, formatToPhone, isPromise} from './helpers'
+import {camelToHyphen, enforceFormat, formatToPhone} from '../helpers'
 import LocalData from './LocalData'
 import LocationFetcher from './LocationFetcher'
+import Tracker from './Tracker'
 
 
 class CallUsWidget {
@@ -78,16 +79,18 @@ class CallUsWidget {
         this.count = CallUsWidget.counts
         this.localData = new LocalData()
         this.locationFetcher = new LocationFetcher()
+        this.tracker = new Tracker()
         CallUsWidget.counts++
     }
 
     init() {
         this.localData.init()
         this.locationFetcher.init()
+        this.tracker.init()
         this._preloadGif()
             .finally(() => {
                 /**
-                 * do not need to wait for fetching because cloud popup appear
+                 * do not need to wait for fetching because cloud popup appear not at once
                  * */
                 return this.locationFetcher.resolveLocality()
             })
@@ -97,6 +100,7 @@ class CallUsWidget {
                 this._addCallMeListeners()
                 this._addModalListeners()
                 this._addFormListeners()
+                this._initCloud()
             })
     }
 
@@ -125,9 +129,40 @@ class CallUsWidget {
         this.$popupClose = this.$popup.find('.js-call-us-widget-popup-close')
         this.$popupCloud = this.$popup.find('.js-call-us-widget-popup-cloud')
         this.$location = this.$popup.find('.js-call-us-widget-location')
+        this.$wheelAnimation = this.$popup.find('.js-call-us-widget-wheel')
+        this.$popupCloudMoveText = this.$popup.find('.js-call-us-widget-move-text')
         this.$img = this.$popup.find('img')
         this.$button = this.$popup.find('.btn')
         this.$body = jQuery('body')
+    }
+
+    _initCloud() {
+        setTimeout(() => {
+            this.$popupCloud.show()
+            this.$popupCloudMoveText.addClass('call-us-widget-move-text')
+            this._initDiscountAnimation()
+        }, CallUsWidget.popupCloudAppearDeffer)
+    }
+
+    _initDiscountAnimation() {
+        this.animateDiscount = 0
+        setTimeout(() => {
+            this.$wheelAnimation.addClass('call-us-widget-wheel-animate')
+            this.$wheelAnimation.on('animationstart', this.___discountAnimationStartCB)
+            this.$wheelAnimation.on('animationiteration', this.___discountAnimationIterationCB)
+        }, 500)
+    }
+    ___discountAnimationStartCB = () => {
+        setTimeout(() => {
+            this.$wheelAnimation.html(++this.animateDiscount)
+        }, 500)
+    }
+    ___discountAnimationIterationCB = () => {
+        if (this.animateDiscount < CallUsWidget.discountAmount) {
+            this.$wheelAnimation.html(++this.animateDiscount)
+        } else {
+            this.$wheelAnimation.removeClass('call-us-widget-wheel-animate')
+        }
     }
 
     _addFormListeners() {
@@ -287,14 +322,6 @@ class CallUsWidget {
         return this._getTextFromTemplate(this._callMeText)
     }
 
-    // TODO
-    _getDiscount() {
-        return 3
-    }
-    _formatDiscount(discount) {
-        return `${discount}.0`
-    }
-
     _getTemplate = () => `
         ${this._getPopupTemplate()}
         ${this._getModalTemplate()}
@@ -312,11 +339,14 @@ class CallUsWidget {
     `
 
     _getPopupCloudTemplate = () => `
-        <div class="call-us-widget-popup-cloud js-call-us-widget-popup-cloud well well-sm m-0">
+        <div class="call-us-widget-popup-cloud js-call-us-widget-popup-cloud well well-sm m-0" style="display:none;">
             <p class="text-center"><b>00:${this._getCountdownSecondsFormated(this.__getMS())}.${this._getCountdownMsFormated(this.__getMS())}</b></p>
-            <p class="text-justify">Здравствуйте, уважа&shy;е&shy;мый по&shy;се&shy;ти&shy;тель<span class="js-call-us-widget-location"></span>.</p>
-            <p class="text-justify">Ваша персональная скидка ${this._formatDiscount(this._getDiscount())}%.</p>
-            <p>+7 ___ - ___ - ____</p>
+            <p class="text-center">Привет!!!</p>
+            <div style="overflow-x: hidden;">
+                <p class="text-center text-nowrap js-call-us-widget-move-text">&mdash; только сегодня клиентам <span class="js-call-us-widget-location"></span> &mdash;</p>
+            </div>
+            <p class="text-center" style="overflow-y: hidden;">скидки <span class="call-us-widget-wheel js-call-us-widget-wheel">0</span>.0%.</p>
+            <p class="text-center">+7 ___ - ___ - ____</p>
             <p class="text-center m-0"><button type="button" class="btn btn-${this.buttonClass} btn-sm">${this._getCallMeText()}</button></p>
             <div class="call-us-widget-no-click-layer"></div>
         </div>
@@ -361,6 +391,8 @@ class CallUsWidget {
     static counts = 0
     static animatedEntranceClass = "fadeInRight"
     static animatedLeaveClass = "fadeOutRight"
+    static discountAmount = 5
+    static popupCloudAppearDeffer = 2000 // 180000 // 3 minutes
 }
 
 export default CallUsWidget

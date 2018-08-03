@@ -1,5 +1,5 @@
 //import './_static/styles/index.scss'
-import CallUsWidget from './CallUsWidget'
+import CallUsWidget from './classes/CallUsWidget'
 
 
 window.CallUsWidget = CallUsWidget
