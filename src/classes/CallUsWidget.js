@@ -145,12 +145,20 @@ class CallUsWidget {
     }
 
     _initCloud() {
-        setTimeout(() => {
-            this.$popupCloud.show()
-            this.$popupCloudMoveText.addClass('call-us-widget-move-text')
-            this._initDiscountAnimation()
-        }, CallUsWidget.popupCloudAppearDeffer)
+        setTimeout(this.__cloudAppearDefferCB, CallUsWidget.popupCloudAppearDeffer)
     }
+    __cloudAppearDefferCB = () => {
+        this.$popupCloud.show()
+        this.$popupCloudMoveText.addClass('call-us-widget-move-text')
+        this._initDiscountAnimation()
+        setTimeout(() => {
+            this.$popupCloud.hide()
+            this.animateDiscount = 0
+            this.$wheelAnimation.html(this.animateDiscount)
+            setTimeout(this.__cloudAppearDefferCB, CallUsWidget.popupCloudAppearDeffer)
+        }, CallUsWidget.popupCloudDisappear)
+    }
+
 
     _initDiscountAnimation() {
         this.animateDiscount = 0
@@ -161,15 +169,21 @@ class CallUsWidget {
         }, 500)
     }
     ___discountAnimationStartCB = () => {
-        setTimeout(() => {
-            this.$wheelAnimation.html(++this.animateDiscount)
-        }, 500)
+        this.$wheelAnimation.html(++this.animateDiscount)
+        this.$wheelAnimation.off('animationstart', this.___discountAnimationStartCB)
     }
-    ___discountAnimationIterationCB = () => {
-        if (this.animateDiscount < CallUsWidget.discountAmount) {
+    ___discountAnimationIterationCB = (event) => {
+        if (this.animateDiscount === CallUsWidget.discountAmount - 1) {
+            setTimeout(() => {
+                this.$wheelAnimation.removeClass('call-us-widget-wheel-animate')
+                this.$wheelAnimation.off('animationiteration', this.___discountAnimationIterationCB)
+                this.$wheelAnimation.html(++this.animateDiscount)
+            }, 200)
+        } else if (this.animateDiscount < CallUsWidget.discountAmount) {
             this.$wheelAnimation.html(++this.animateDiscount)
         } else {
             this.$wheelAnimation.removeClass('call-us-widget-wheel-animate')
+            this.$wheelAnimation.off('animationiteration', this.___discountAnimationIterationCB)
         }
     }
 
@@ -209,6 +223,7 @@ class CallUsWidget {
         this.$popupClose.on('click', this.__clickPopupClose)
         this.$img.on('click', this.__clickToShowModal)
         this.$button.on('click', this.__clickToShowModal)
+        this.$popupCloud.on('click', this.__clickToShowModal)
     }
 
     _addModalListeners() {
@@ -400,7 +415,8 @@ class CallUsWidget {
     static animatedEntranceClass = "fadeInRight"
     static animatedLeaveClass = "fadeOutRight"
     static discountAmount = 5
-    static popupCloudAppearDeffer = 2000 // 180000 // 3 minutes
+    static popupCloudAppearDeffer = 30000 // 180000 // 3 minutes
+    static popupCloudDisappear = 30000
 }
 
 export default CallUsWidget

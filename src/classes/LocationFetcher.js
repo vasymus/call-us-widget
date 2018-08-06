@@ -45,7 +45,7 @@ class LocationFetcher {
         this.localData.set('formatedLocality', this.getFormatedLocality())
     }
 
-    __setLocalityViaGoogleMap(latitude, longtitude) {
+    __setLocalityViaGoogleMap = (latitude, longtitude) => {
         fetch(`${LocationFetcher.GURL}?latlng=${latitude},${longtitude}&key=${LocationFetcher.GK}&language=${LocationFetcher.language}`)
             .then(this.___middleThenCB)
             .then(response => {
@@ -58,7 +58,7 @@ class LocationFetcher {
             .finally(this.___resolveCB)
     }
 
-    __getCoordsByIp() {
+    __getCoordsByIp = () => {
         fetch(`${LocationFetcher.IPSERVICE_URL}?access_key=${LocationFetcher.IPSERVICE_K}&language=${LocationFetcher.language}`)
             .then(this.___middleThenCB)
             .then(response => {
