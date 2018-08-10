@@ -42,6 +42,12 @@
 .v-hidden {
     visibility: hidden;
 }
+.call-us-widget-posa-center {
+    position: absolute;
+    top:50%;
+    left:50%;
+    transform : translate(-50%, -50%);
+}
 
 .call-us-widget-input-group-center {
     width: 175px;
@@ -63,6 +69,8 @@
     position: absolute;
     opacity: 0.9;
     max-width: 165px;
+    min-height: 75px;
+    padding-top: 25px;
     top: -60%;
     left:-50%;
     font-size: 12px;

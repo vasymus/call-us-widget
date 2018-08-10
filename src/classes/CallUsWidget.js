@@ -385,9 +385,9 @@ class CallUsWidget {
     _getPopupCloudTemplate = () => `
         <div class="call-us-widget-popup-cloud js-call-us-widget-popup-cloud well well-sm m-0" style="display:none;">
             <button type="button" class="close call-us-widget-popup-cloud-close js-call-us-widget-popup-cloud-close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <p class="text-center v-hidden call-us-widget-popup-cloud-big-text call-us-widget-popup-cloud-greeting js-call-us-widget-popup-cloud-greeting animated">Привет!!!</p>
+            <p class="text-center v-hidden call-us-widget-popup-cloud-big-text call-us-widget-popup-cloud-greeting js-call-us-widget-popup-cloud-greeting animated call-us-widget-posa-center">Привет!!!</p>
             <div class="ovh-x">
-                <p class="text-center text-nowrap js-call-us-widget-move-text v-hidden animated">&mdash; только сегодня клиентам <span class="js-call-us-widget-location"></span> &mdash;</p>
+                <p class="text-center text-nowrap js-call-us-widget-move-text v-hidden animated">&mdash; &nbsp;&nbsp; только сегодня клиентам <span class="js-call-us-widget-location"></span> &nbsp;&nbsp; &mdash;</p>
             </div>
             <p class="text-center call-us-widget-popup-cloud-big-text js-call-us-widget-popup-cloud-discount v-hidden animated" style="overflow-y: hidden;">скидки <span class="call-us-widget-wheel js-call-us-widget-wheel-int">0</span>.<span class="call-us-widget-wheel js-call-us-widget-wheel-float">0</span>%</p>
             <div class="call-us-widget-no-click-layer"></div>
