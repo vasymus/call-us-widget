@@ -88,14 +88,9 @@ class CallUsWidget {
         this.locationFetcher.init()
         this.tracker.init()
         this._preloadGif()
-            .finally(() => {
-                /**
-                 * do not need to wait for fetching because cloud popup appear not at once
-                 * */
-                return new Promise(resolve => {
-                    this.locationFetcher.resolveLocality(resolve)
-                })
-            })
+            .finally(() => new Promise(resolve => {
+                this.locationFetcher.resolveLocality(resolve)
+            }))
             .finally(() => {
                 this._render()
                 this._findNodes()
@@ -131,8 +126,12 @@ class CallUsWidget {
         this.$popup = this.$element.find('.call-us-widget-popup')
         this.$popupClose = this.$popup.find('.js-call-us-widget-popup-close')
         this.$popupCloud = this.$popup.find('.js-call-us-widget-popup-cloud')
+        this.$popupCloudGreeting = this.$popupCloud.find('.js-call-us-widget-popup-cloud-greeting')
+        this.$popupCloudDiscount = this.$popupCloud.find('.js-call-us-widget-popup-cloud-discount')
+        this.$popupCloudClose = this.$popupCloud.find('.js-call-us-widget-popup-cloud-close')
         this.$location = this.$popup.find('.js-call-us-widget-location')
         this.$wheelAnimation = this.$popup.find('.js-call-us-widget-wheel')
+        this.$wheelAnimationFloat = this.$popup.find('.js-call-us-widget-wheel-float')
         this.$popupCloudMoveText = this.$popup.find('.js-call-us-widget-move-text')
         this.$img = this.$popup.find('img')
         this.$button = this.$popup.find('.btn')
@@ -145,19 +144,37 @@ class CallUsWidget {
     }
 
     _initCloud() {
-        setTimeout(this.__cloudAppearDefferCB, CallUsWidget.popupCloudAppearDeffer)
+        this.cloudTimer = setTimeout(this.__cloudAppearDefferCB, CallUsWidget.popupCloudAppearDeffer)
     }
     __cloudAppearDefferCB = () => {
         this.$popupCloud.show()
-        this.$popupCloudMoveText.addClass('call-us-widget-move-text')
-        this._initDiscountAnimation()
+        this.$popupCloudGreeting.removeClass('v-hidden').addClass('fadeIn')
+
         setTimeout(() => {
-            this.$popupCloud.hide()
-            this.animateDiscount = 0
-            this.$wheelAnimation.html(this.animateDiscount)
-            setTimeout(this.__cloudAppearDefferCB, CallUsWidget.popupCloudAppearDeffer)
-        }, CallUsWidget.popupCloudDisappear)
+            this.$popupCloudGreeting.removeClass('fadeIn').addClass('fadeOut')
+            this.$popupCloudMoveText.removeClass('v-hidden').addClass('fadeIn call-us-widget-move-text')
+            this.$popupCloudDiscount.removeClass('v-hidden').addClass('fadeIn')
+
+            this._initDiscountAnimation()
+            setTimeout(this._disappearCloud, CallUsWidget.popupCloudDisappear)
+        }, 3000)
     }
+
+    _disappearCloud = () => {
+        this.$popupCloud.hide()
+        this.animateDiscount = 0
+        this.$wheelAnimation.html(this.animateDiscount)
+        clearTimeout(this.cloudTimer)
+        this.$popupCloud.hide()
+        this.$popupCloudGreeting.addClass('v-hidden').removeClass('fadeIn fadeOut')
+        this.$popupCloudMoveText.addClass('v-hidden').removeClass('fadeIn call-us-widget-move-text')
+        this.$popupCloudDiscount.addClass('v-hidden').removeClass('fadeIn')
+        this.cloudTimer = setTimeout(this.__cloudAppearDefferCB, CallUsWidget.popupCloudAppearDeffer)
+    }
+
+    // __renderAnimateDiscount = () => {
+    //     this.$wheelAnimation
+    // }
 
 
     _initDiscountAnimation() {
@@ -224,6 +241,7 @@ class CallUsWidget {
         this.$img.on('click', this.__clickToShowModal)
         this.$button.on('click', this.__clickToShowModal)
         this.$popupCloud.on('click', this.__clickToShowModal)
+        this.$popupCloudClose.on('click', this.__clickToPopupClose)
     }
 
     _addModalListeners() {
@@ -231,10 +249,15 @@ class CallUsWidget {
         this.$modal.on('hidden.bs.modal', this.__hiddenBsModal)
     }
 
+    __clickToPopupClose = () => this._disappearCloud
+
     __clickPopupClose = () => {
         this._temporaryHidePopup()
     }
-    __clickToShowModal = () => this.$modal.modal('show')
+    __clickToShowModal = (event) => {
+        let $target = $(event.target)
+        if (!$target.is(this.$popupCloudClose) && !$target.is(this.$popupCloudClose.children().first())) this.$modal.modal('show')
+    }
     __showBsModal = () => this.$body.addClass('call-us-widget-body-space')
     __hiddenBsModal = () => {
         this.$body.removeClass('call-us-widget-body-space')
@@ -363,14 +386,12 @@ class CallUsWidget {
 
     _getPopupCloudTemplate = () => `
         <div class="call-us-widget-popup-cloud js-call-us-widget-popup-cloud well well-sm m-0" style="display:none;">
-            <p class="text-center"><b>00:${this._getCountdownSecondsFormated(this.__getMS())}.${this._getCountdownMsFormated(this.__getMS())}</b></p>
-            <p class="text-center">Привет!!!</p>
-            <div style="overflow-x: hidden;">
-                <p class="text-center text-nowrap js-call-us-widget-move-text">&mdash; только сегодня клиентам <span class="js-call-us-widget-location"></span> &mdash;</p>
+            <button type="button" class="close call-us-widget-popup-cloud-close js-call-us-widget-popup-cloud-close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <p class="text-center v-hidden call-us-widget-popup-cloud-big-text call-us-widget-popup-cloud-greeting js-call-us-widget-popup-cloud-greeting animated">Привет!!!</p>
+            <div class="ovh-x">
+                <p class="text-center text-nowrap js-call-us-widget-move-text v-hidden animated">&mdash; только сегодня клиентам <span class="js-call-us-widget-location"></span> &mdash;</p>
             </div>
-            <p class="text-center" style="overflow-y: hidden;">скидки <span class="call-us-widget-wheel js-call-us-widget-wheel">0</span>.0%.</p>
-            <p class="text-center">+7 ___ - ___ - ____</p>
-            <p class="text-center m-0"><button type="button" class="btn btn-${this.buttonClass} btn-sm">${this._getCallMeText()}</button></p>
+            <p class="text-center call-us-widget-popup-cloud-big-text js-call-us-widget-popup-cloud-discount v-hidden animated" style="overflow-y: hidden;">скидки <span class="call-us-widget-wheel js-call-us-widget-wheel">0</span>.<span class="js-call-us-widget-wheel-float">0</span>%</p>
             <div class="call-us-widget-no-click-layer"></div>
         </div>
     `
@@ -415,7 +436,7 @@ class CallUsWidget {
     static animatedEntranceClass = "fadeInRight"
     static animatedLeaveClass = "fadeOutRight"
     static discountAmount = 5
-    static popupCloudAppearDeffer = 30000 // 180000 // 3 minutes
+    static popupCloudAppearDeffer = 2000 // 180000 // 3 minutes
     static popupCloudDisappear = 30000
 }
 

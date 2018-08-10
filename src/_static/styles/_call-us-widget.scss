@@ -36,6 +36,12 @@
 .m-0 {
     margin:0;
 }
+.ovh-x {
+    overflow-x: hidden;
+}
+.v-hidden {
+    visibility: hidden;
+}
 
 .call-us-widget-input-group-center {
     width: 175px;
@@ -59,7 +65,7 @@
     max-width: 165px;
     top: -60%;
     left:-50%;
-    font-size: 10px;
+    font-size: 12px;
     border-radius: 7px;
     line-height: 1;
     p {
@@ -144,4 +150,17 @@
         transform: translateY(-30px);
         opacity:0;
     }
+}
+
+
+.call-us-widget-popup-cloud-big-text {
+    font-size:14px;
+}
+
+.call-us-widget-popup-cloud-close {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    font-size: 18px;
+    z-index: 2;
 }
