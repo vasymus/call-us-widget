@@ -131,7 +131,7 @@
 .call-us-widget-wheel {
     display: inline-block;
     vertical-align: text-bottom;
-    transition : transform .5s ease;
+    transition : all .5s ease;
     &.call-us-widget-wheel-animate {
         animation: slideWheel 1.5s infinite;
     }
@@ -139,10 +139,6 @@
 
 @keyframes slideWheel {
     0% {
-        transform: translateY(30px);
-        opacity:0;
-    }
-    25%, 75% {
         transform: translateY(0);
         opacity:1;
     }

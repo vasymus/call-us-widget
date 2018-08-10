@@ -130,7 +130,7 @@ class CallUsWidget {
         this.$popupCloudDiscount = this.$popupCloud.find('.js-call-us-widget-popup-cloud-discount')
         this.$popupCloudClose = this.$popupCloud.find('.js-call-us-widget-popup-cloud-close')
         this.$location = this.$popup.find('.js-call-us-widget-location')
-        this.$wheelAnimation = this.$popup.find('.js-call-us-widget-wheel')
+        this.$wheelAnimationInt = this.$popup.find('.js-call-us-widget-wheel-int')
         this.$wheelAnimationFloat = this.$popup.find('.js-call-us-widget-wheel-float')
         this.$popupCloudMoveText = this.$popup.find('.js-call-us-widget-move-text')
         this.$img = this.$popup.find('img')
@@ -162,8 +162,8 @@ class CallUsWidget {
 
     _disappearCloud = () => {
         this.$popupCloud.hide()
-        this.animateDiscount = 0
-        this.$wheelAnimation.html(this.animateDiscount)
+        this.__resetAnimationDiscount()
+
         clearTimeout(this.cloudTimer)
         this.$popupCloud.hide()
         this.$popupCloudGreeting.addClass('v-hidden').removeClass('fadeIn fadeOut')
@@ -171,38 +171,36 @@ class CallUsWidget {
         this.$popupCloudDiscount.addClass('v-hidden').removeClass('fadeIn')
         this.cloudTimer = setTimeout(this.__cloudAppearDefferCB, CallUsWidget.popupCloudAppearDeffer)
     }
-
-    // __renderAnimateDiscount = () => {
-    //     this.$wheelAnimation
-    // }
-
+    __resetAnimationDiscount = () => {
+        this.animationDiscount = 0
+        this.__renderAnimateDiscount()
+    }
 
     _initDiscountAnimation() {
-        this.animateDiscount = 0
-        setTimeout(() => {
-            this.$wheelAnimation.addClass('call-us-widget-wheel-animate')
-            this.$wheelAnimation.on('animationstart', this.___discountAnimationStartCB)
-            this.$wheelAnimation.on('animationiteration', this.___discountAnimationIterationCB)
-        }, 500)
+        this.animationDiscount = 0
+        this.__renderAnimateDiscount()
+        this.animationTimer = setTimeout(this.__manualAnimation, 250)
     }
-    ___discountAnimationStartCB = () => {
-        this.$wheelAnimation.html(++this.animateDiscount)
-        this.$wheelAnimation.off('animationstart', this.___discountAnimationStartCB)
-    }
-    ___discountAnimationIterationCB = (event) => {
-        if (this.animateDiscount === CallUsWidget.discountAmount - 1) {
-            setTimeout(() => {
-                this.$wheelAnimation.removeClass('call-us-widget-wheel-animate')
-                this.$wheelAnimation.off('animationiteration', this.___discountAnimationIterationCB)
-                this.$wheelAnimation.html(++this.animateDiscount)
-            }, 200)
-        } else if (this.animateDiscount < CallUsWidget.discountAmount) {
-            this.$wheelAnimation.html(++this.animateDiscount)
+
+    __manualAnimation = () => {
+        if (this.animationDiscount >= 50) {
+            clearTimeout(this.animationTimer)
         } else {
-            this.$wheelAnimation.removeClass('call-us-widget-wheel-animate')
-            this.$wheelAnimation.off('animationiteration', this.___discountAnimationIterationCB)
+            this.animationDiscount++
+            this.__renderAnimateDiscount()
+            this.animationTimer = setTimeout(this.__manualAnimation, 250)
         }
     }
+
+    __renderAnimateDiscount = () => {
+        let int = this.___getAnimateDiscountInt()
+        let float = this.___getAnimateDiscountFloat()
+        this.$wheelAnimationInt.html(int)
+        this.$wheelAnimationFloat.html(float)
+    }
+
+    ___getAnimateDiscountInt = () => (this.animationDiscount / 10).toFixed(1).split('.')[0]
+    ___getAnimateDiscountFloat = () => (this.animationDiscount / 10).toFixed(1).split('.')[1]
 
     _addFormListeners() {
         this.$form.on('submit', this.__submitHandler)
@@ -249,7 +247,7 @@ class CallUsWidget {
         this.$modal.on('hidden.bs.modal', this.__hiddenBsModal)
     }
 
-    __clickToPopupClose = () => this._disappearCloud
+    __clickToPopupClose = () => this._disappearCloud()
 
     __clickPopupClose = () => {
         this._temporaryHidePopup()
@@ -391,7 +389,7 @@ class CallUsWidget {
             <div class="ovh-x">
                 <p class="text-center text-nowrap js-call-us-widget-move-text v-hidden animated">&mdash; только сегодня клиентам <span class="js-call-us-widget-location"></span> &mdash;</p>
             </div>
-            <p class="text-center call-us-widget-popup-cloud-big-text js-call-us-widget-popup-cloud-discount v-hidden animated" style="overflow-y: hidden;">скидки <span class="call-us-widget-wheel js-call-us-widget-wheel">0</span>.<span class="js-call-us-widget-wheel-float">0</span>%</p>
+            <p class="text-center call-us-widget-popup-cloud-big-text js-call-us-widget-popup-cloud-discount v-hidden animated" style="overflow-y: hidden;">скидки <span class="call-us-widget-wheel js-call-us-widget-wheel-int">0</span>.<span class="call-us-widget-wheel js-call-us-widget-wheel-float">0</span>%</p>
             <div class="call-us-widget-no-click-layer"></div>
         </div>
     `
@@ -435,7 +433,7 @@ class CallUsWidget {
     static counts = 0
     static animatedEntranceClass = "fadeInRight"
     static animatedLeaveClass = "fadeOutRight"
-    static discountAmount = 5
+    static discountAmount = 50
     static popupCloudAppearDeffer = 2000 // 180000 // 3 minutes
     static popupCloudDisappear = 30000
 }
